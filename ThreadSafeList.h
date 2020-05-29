@@ -2,8 +2,8 @@
 // Created by danie on 29-May-20.
 //
 
-#ifndef OS_WET3_THREADSAFELIST_H
-#define OS_WET3_THREADSAFELIST_H
+#ifndef OS3_THREADSAFELIST_H
+#define OS3_THREADSAFELIST_H
 
 // put here list of spinlocks for the nodes in the list
 
