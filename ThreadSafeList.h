@@ -1,7 +1,3 @@
-//
-// Created by danie on 29-May-20.
-//
-
 #ifndef OS3_THREADSAFELIST_H
 #define OS3_THREADSAFELIST_H
 
@@ -9,7 +5,8 @@
 
 <template class T>
 class Node {
-
+    int index;
+    int data; // **unique**
 };
 
 <template class T>

@@ -1,7 +1,3 @@
-//
-// Created by danie on 29-May-20.
-//
-
 #ifndef OS3_BARRIER_H
 #define OS3_BARRIER_H
 
