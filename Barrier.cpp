@@ -8,7 +8,7 @@ Barrier::Barrier(unsigned int num_of_thread) {
     // max_threads = num_of_thread
 }
 
-void Barrier:Wait() {
+void Barrier::Wait() {
     // mutex lock
     // count++
     // if count = max_threads:
