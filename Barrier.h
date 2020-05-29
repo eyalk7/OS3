@@ -3,6 +3,8 @@
 
 
 class Barrier {
+    int max_threads;
+
 
 public:
     Barrier(unsigned int num_of_thread);
