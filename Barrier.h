@@ -2,8 +2,8 @@
 // Created by danie on 29-May-20.
 //
 
-#ifndef OS_WET3_BARRIER_H
-#define OS_WET3_BARRIER_H
+#ifndef OS3_BARRIER_H
+#define OS3_BARRIER_H
 
 
 class Barrier {
