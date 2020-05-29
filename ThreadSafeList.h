@@ -12,6 +12,7 @@ class ThreadSafeList {
 private:
     class Node {
         T data; // **unique**
+        Node* next;
         // spinlock
     };
 
