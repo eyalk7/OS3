@@ -6,7 +6,7 @@ using namespace std;
 template <typename T>
 class MyList : public List<T> {
  public:
-  void __add_hook() override {
+  void __insert_test_hook() override {
     if (!hook_enabled)
       return;
     this->remove(val_to_remove);
