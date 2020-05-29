@@ -13,7 +13,7 @@ using namespace std;
 // put here list of spinlocks for the nodes in the list
 
 template <class T>
-class ThreadSafeList {
+class List {
 
 
 public:
