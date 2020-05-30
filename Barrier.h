@@ -11,7 +11,7 @@ private:
     pthread_mutex_t mutex;
 public:
     Barrier(unsigned int num_of_thread);
-    void Wait();
+    void wait();
     ~Barrier();
 };
 

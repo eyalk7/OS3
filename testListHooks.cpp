@@ -1,7 +1,6 @@
 #include "ThreadSafeList.h"
 #include <iostream>
 #include <assert.h>
-using namespace std;
 
 template <typename T>
 class MyList : public List<T> {

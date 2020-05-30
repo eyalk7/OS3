@@ -12,6 +12,12 @@ class List {
 private:
     class Node {
     public:
+        // Node field members
+        T data; // **unique**
+        Node* next;
+        pthread_mutex_t mutex;
+
+        // Node functions
         Node(const T& data) : data(data),
                               next(nullptr)  {
             pthread_mutex_init(&mutex, NULL);
@@ -19,25 +25,29 @@ private:
         ~Node() {
             pthread_mutex_destroy(&mutex);
         }
-
-        T data; // **unique**
-        Node* next;
-        pthread_mutex_t mutex;
     };
 
-
-    pthread_mutex_t list_mutex, size_mutex;
-    Node* head; // head points to dummy
+    // List field members
     int size;
+    Node* head; // head points to dummy
+    pthread_mutex_t list_mutex, size_mutex;
 
 public:
-    List() {
-        //initialize empty list
-        // intizlie list_mutex and size_mutex
-        // intialize dummy node
-        // size = 0
+    // List functions
+    List() : size(0) {
+        //initialize empty list with dummy node
+        head = new Node(T());
 
-        // if failed print to std:cerr  "<function name>:failed" and exit(-1)
+        // intialize the locks
+        int retVal1 = pthread_mutex_init(&list_mutex, NULL);
+        int retVal2 = pthread_mutex_init(&size_mutex, NULL);
+
+        // check if an operation failed
+        if (!head || retVal1 != 0 || retVal2 != 0) {
+            // todo: don't need to check mutex_init return values ?
+            std::cerr << "List():failed";
+            exit(-1);
+        }
     }
     bool insert(const T& data) {
         // hand in hand locking traversal:
@@ -142,8 +152,10 @@ public:
           pthread_mutex_unlock(&list_mutex);
         }
 
-    virtual void __insert_test_hook();
-    virtual void __remove_test_hook();
+    // Don't remove
+    virtual void __insert_test_hook() {}
+    // Don't remove
+    virtual void __remove_test_hook() {}
 
 
 };
