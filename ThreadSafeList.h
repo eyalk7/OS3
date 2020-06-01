@@ -18,7 +18,7 @@ private:
         pthread_mutex_t mutex;
 
         // Node functions
-        Node(const T& data) : data(data),
+        explicit Node(const T& data) : data(data),
                               next(nullptr)  {
             pthread_mutex_init(&mutex, NULL);
         }
@@ -32,40 +32,85 @@ private:
     Node* head; // head points to dummy
     pthread_mutex_t list_mutex, size_mutex;
 
+    void ReleaseLocks(Node* prev, Node* current) {
+        pthread_mutex_unlock(&(prev->mutex));
+        if (current) {
+            pthread_mutex_unlock(&(current->mutex));
+        }
+    }
+
 public:
     // List functions
     List() : size(0) {
-        //initialize empty list with dummy node
+        //initialize empty list with dummy nodes
         head = new Node(T());
 
-        // intialize the locks
+        // initialize the locks
         int retVal1 = pthread_mutex_init(&list_mutex, NULL);
         int retVal2 = pthread_mutex_init(&size_mutex, NULL);
 
         // check if an operation failed
         if (!head || retVal1 != 0 || retVal2 != 0) {
-            // todo: don't need to check mutex_init return values ?
             std::cerr << "List():failed";
             exit(-1);
         }
     }
     bool insert(const T& data) {
-        // hand in hand locking traversal:
-        //      lock()
-        //      if there is a node with the same data:  unlock and return false
-        //      else {
-        //          insert (in **ascending order**)
-        //           if insert succeeded:
-        //                 // lock size_mutex
-        //                 size++
-        //                 // unlock size_mutex
-        //                 insert_test_hook
-        //           else: unlock and return false
-        //      }
-        //      unlock()
+        Node* prev = head;
+        Node* current = head->next;
 
+        // hand over hand locking traversal
+        pthread_mutex_lock(&(prev->mutex)); // lock first node (dummy)
+        while (current) {
+            pthread_mutex_lock(&(current->mutex)); // lock the next node to check
+
+            // check if the node already exists
+            if (current->data == data) {
+                ReleaseLocks(prev, current); // release the locks
+                return false;                // return failure
+            }
+
+            // check if to insert here
+            if (data < current->data) {
+                break; // found insertion place
+            }
+            // else, keep traversing the list looking for appropriate insertion place
+
+            pthread_mutex_unlock(&(prev->mutex)); // unlock the previous node
+
+            // update pointers for next iteration
+            prev = current;
+            current = current->next;
+        }
+
+        // loop was broken OR reached the end of the list
+        // (either way, found insertion place)
+
+        try {
+            // insert new node
+            Node* to_insert = new Node(data);
+            prev->next = to_insert;
+            to_insert->next = current;
+
+        } catch (std::bad_alloc&) {      // on allocation error
+            ReleaseLocks(prev, current); // release the locks
+            // (if reached the end of the list current is null so no need to unlock)
+
+            return false;                // return failure
+        }
+
+        __insert_test_hook(); // test hook
+
+        ReleaseLocks(prev, current); // release the locks
+        // (if reached the end of the list current is null and isn't unlocked)
+
+        // update size and return success
+        pthread_mutex_lock(&size_mutex);
+        size++;
+        pthread_mutex_unlock(&size_mutex);
         return true;
     }
+
     bool remove(const T& value) {
         // hand over hand locking traversal
         pthread_mutex_lock(&(head->mutex)); // lock dummy
@@ -128,9 +173,8 @@ public:
         pthread_mutex_destroy(&size_mutex);
     }
     void print() {
-        // todo: modify to ignore dummy node!
           pthread_mutex_lock(&list_mutex);
-          Node* temp = head;
+          Node* temp = head->next;  // skip dummy
           if (temp == NULL)
           {
             cout << "";
@@ -156,8 +200,6 @@ public:
     virtual void __insert_test_hook() {}
     // Don't remove
     virtual void __remove_test_hook() {}
-
-
 };
 
 #endif //OS_WET3_THREADSAFELIST_H
