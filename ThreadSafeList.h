@@ -43,14 +43,19 @@ public:
     // List functions
     List() : size(0) {
         //initialize empty list with dummy nodes
-        head = new Node(T());
-
+        try {
+            head = new Node(T());
+        } catch (std::bad_alloc&) { // allocation error
+            std::cerr << "List():failed";
+            exit(-1);
+        }
         // initialize the locks
         int retVal1 = pthread_mutex_init(&list_mutex, NULL);
         int retVal2 = pthread_mutex_init(&size_mutex, NULL);
 
-        // check if an operation failed
-        if (!head || retVal1 != 0 || retVal2 != 0) {
+        // check if mutex initialization failed
+        if (retVal1 != 0 || retVal2 != 0) {
+            // TODO: is this check necessary ?
             std::cerr << "List():failed";
             exit(-1);
         }
