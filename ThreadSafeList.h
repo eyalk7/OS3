@@ -61,11 +61,11 @@ public:
         }
     }
     bool insert(const T& data) {
+        // hand over hand locking traversal
+        pthread_mutex_lock(&(head->mutex)); // lock first node (dummy)
+
         Node* prev = head;
         Node* current = head->next;
-
-        // hand over hand locking traversal
-        pthread_mutex_lock(&(prev->mutex)); // lock first node (dummy)
         while (current) {
             pthread_mutex_lock(&(current->mutex)); // lock the next node to check
 
