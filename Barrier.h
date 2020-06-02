@@ -15,7 +15,7 @@ public:
     ~Barrier();
 
     // function for testing
-    int waitingThreads();
+    // int waitingThreads();
 };
 
 

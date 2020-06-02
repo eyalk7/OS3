@@ -10,6 +10,10 @@ class MyList : public List<T> {
       return;
     this->remove(val_to_remove);
   }
+    void __remove_test_hook() override {
+        if (!hook_enabled)
+            return;
+    }
   void activateHook(int val) {
     hook_enabled = true;
     val_to_remove = val;
@@ -36,10 +40,10 @@ int main() {
   // the node to be removed should be a pred of the one being inserted
   // because hand locks are already acquired on the inserted node
   ((MyList<int>*)l)->activateHook(10);
-  l->insert(17);
+  l->insert(17); // list after: 0,2,4,6,8,10,12,14,16,17,18
 
   ((MyList<int>*)l)->setValueToRemove(6);
-  l->insert(11);
+  l->insert(11); // list after: 0,2,4,8,10,11,12,14,16,17,18
 
   assert(l->getSize() == 10);
   l->print(); // should print: 0,2,4,8,11,12,14,16,17,18

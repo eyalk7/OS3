@@ -25,9 +25,11 @@ Barrier::~Barrier() {
 }
 
 // function for testing
+/*
 int Barrier::waitingThreads() {
     pthread_mutex_lock(&mutex); // lock mutex
     int retVal = threads_in_barrier;
     pthread_mutex_unlock(&mutex); // unlock mutex
     return retVal;
 }
+ */

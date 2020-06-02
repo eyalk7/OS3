@@ -205,6 +205,35 @@ public:
     virtual void __insert_test_hook() {}
     // Don't remove
     virtual void __remove_test_hook() {}
+
+    // for testing
+    /*
+    bool isSorted(){
+        pthread_mutex_lock(&(head->mutex));
+        if(!head->next) {
+            pthread_mutex_unlock(&(head->mutex));
+            return true;
+        }else{
+            pthread_mutex_lock(&head->next->mutex);
+            pthread_mutex_unlock(&(head->mutex));
+        }
+        Node* prev = head->next;
+        Node* curr = head->next->next;
+        while(curr) {
+            pthread_mutex_lock(&curr->mutex);
+            if(prev->data >= curr->data) {
+                pthread_mutex_unlock(&curr->mutex);
+                pthread_mutex_unlock(&prev->mutex);
+                return false;
+            }
+            pthread_mutex_unlock(&prev->mutex);
+            prev = curr;
+            curr = curr->next;
+        }
+        pthread_mutex_unlock(&prev->mutex);
+        return true;
+    }
+     */
 };
 
 #endif //OS_WET3_THREADSAFELIST_H
