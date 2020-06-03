@@ -33,10 +33,10 @@ private:
     pthread_mutex_t list_mutex, size_mutex;
 
     void ReleaseLocks(Node* prev, Node* current) {
-        pthread_mutex_unlock(&(prev->mutex));
         if (current) {
             pthread_mutex_unlock(&(current->mutex));
         }
+        pthread_mutex_unlock(&(prev->mutex));
     }
 
 public:
@@ -97,16 +97,17 @@ public:
             return false;                // return failure
         }
 
+        // update size
+        pthread_mutex_lock(&size_mutex);
+        size++;
+        pthread_mutex_unlock(&size_mutex);
+
         __insert_test_hook(); // test hook
 
         ReleaseLocks(prev, current); // release the locks
         // (if reached the end of the list current is null and isn't unlocked)
 
-        // update size and return success
-        pthread_mutex_lock(&size_mutex);
-        size++;
-        pthread_mutex_unlock(&size_mutex);
-        return true;
+        return true; // return success
     }
 
     bool remove(const T& value) {
@@ -121,19 +122,19 @@ public:
                 Node* to_delete = iter->next;
                 iter->next = iter->next->next; // remove from list
 
+                // update size
+                pthread_mutex_lock(&size_mutex);
+                size--;
+                pthread_mutex_unlock(&size_mutex);
+
                 __remove_test_hook(); // test hook
+
+                pthread_mutex_unlock(&(iter->mutex));
 
                 // delete the node (it's ok to unlock the lock and destroy the lock safely after
                 // because we know for sure that no other thread would try to lock it in between)
                 pthread_mutex_unlock(&(to_delete->mutex));
                 delete to_delete; // mutex destroyed in Node's d'tor
-
-                pthread_mutex_unlock(&(iter->mutex));
-
-                // update size
-                pthread_mutex_lock(&size_mutex);
-                size--;
-                pthread_mutex_unlock(&size_mutex);
 
                 return true; // success
             }
