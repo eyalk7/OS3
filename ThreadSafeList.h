@@ -46,19 +46,12 @@ public:
         try {
             head = new Node(T());
         } catch (std::bad_alloc&) { // allocation error
-            std::cerr << "List():failed";
+            std::cerr << "new:failed" << std::endl;
             exit(-1);
         }
         // initialize the locks
-        int retVal1 = pthread_mutex_init(&list_mutex, NULL);
-        int retVal2 = pthread_mutex_init(&size_mutex, NULL);
-
-        // check if mutex initialization failed
-        if (retVal1 != 0 || retVal2 != 0) {
-            // TODO: is this check necessary ?
-            std::cerr << "List():failed";
-            exit(-1);
-        }
+        pthread_mutex_init(&list_mutex, NULL);
+        pthread_mutex_init(&size_mutex, NULL);
     }
     bool insert(const T& data) {
         // hand over hand locking traversal
@@ -163,8 +156,6 @@ public:
     }
 
     ~List() {
-        // TODO: i think we don't need here mutual exclusion
-
         // destroy all nodes (includes dummy)
         Node* iter = head;
         while (iter) {

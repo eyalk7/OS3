@@ -10,13 +10,16 @@ void Barrier::wait() {
     pthread_mutex_lock(&mutex); // lock mutex
     threads_in_barrier++;
     if (threads_in_barrier == num_of_threads) { // release all
-        for (int i=0; i<num_of_threads; i++) sem_post(&sem);
+        for (int i=0; i<num_of_threads-1; i++) sem_post(&sem);
         threads_in_barrier = 0;
-    }
-    pthread_mutex_unlock(&mutex); // unlock mutex
+        pthread_mutex_unlock(&mutex); // unlock mutex
 
-    // barrier
-    sem_wait(&sem);
+    } else {
+        pthread_mutex_unlock(&mutex); // unlock mutex
+
+        // barrier
+        sem_wait(&sem);
+    }
 }
 
 Barrier::~Barrier() {
