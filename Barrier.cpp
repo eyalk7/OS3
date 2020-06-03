@@ -30,6 +30,7 @@ void Barrier::wait() {
 
 Barrier::~Barrier() {
     sem_destroy(&sem);
+    sem_destroy(&fence);
     pthread_mutex_destroy(&mutex);
 }
 

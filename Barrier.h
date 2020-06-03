@@ -10,7 +10,7 @@ private:
     sem_t sem, fence;
     pthread_mutex_t mutex;
 public:
-    Barrier(unsigned int num_of_thread);
+    explicit Barrier(unsigned int num_of_thread);
     void wait();
     ~Barrier();
 
