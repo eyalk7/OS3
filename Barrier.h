@@ -7,7 +7,7 @@
 class Barrier {
 private:
     int num_of_threads, threads_in_barrier;
-    sem_t sem;
+    sem_t sem, fence;
     pthread_mutex_t mutex;
 public:
     Barrier(unsigned int num_of_thread);
@@ -15,7 +15,7 @@ public:
     ~Barrier();
 
     // function for testing
-    // int waitingThreads();
+    //int waitingThreads();
 };
 
 
