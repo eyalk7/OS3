@@ -1,5 +1,5 @@
-#ifndef OS3_THREADSAFELIST_H
-#define OS3_THREADSAFELIST_H
+#ifndef THREAD_SAFE_LIST_H_
+#define THREAD_SAFE_LIST_H_
 
 #include <pthread.h>
 #include <iostream>
@@ -30,7 +30,7 @@ private:
     // List field members
     int size;
     Node* head; // head points to dummy
-    pthread_mutex_t list_mutex, size_mutex;
+    pthread_mutex_t size_mutex;
 
     void ReleaseLocks(Node* prev, Node* current) {
         if (current) {
@@ -50,7 +50,6 @@ public:
             exit(-1);
         }
         // initialize the locks
-        pthread_mutex_init(&list_mutex, NULL);
         pthread_mutex_init(&size_mutex, NULL);
     }
     bool insert(const T& data) {
@@ -165,12 +164,10 @@ public:
             delete to_delete; // d'tor will destroy node's mutex
         }
 
-        // destroy list_mutex and size_mutex
-        pthread_mutex_destroy(&list_mutex);
+        // destroy size_mutex
         pthread_mutex_destroy(&size_mutex);
     }
     void print() {
-          pthread_mutex_lock(&list_mutex);
           Node* temp = head->next;  // skip dummy
           if (temp == NULL)
           {
@@ -190,7 +187,6 @@ public:
             }
           }
           cout << endl;
-          pthread_mutex_unlock(&list_mutex);
         }
 
     // Don't remove
@@ -199,7 +195,7 @@ public:
     virtual void __remove_test_hook() {}
 
     // for testing
-    /*
+
     bool isSorted(){
         pthread_mutex_lock(&(head->mutex));
         if(!head->next) {
@@ -225,7 +221,7 @@ public:
         pthread_mutex_unlock(&prev->mutex);
         return true;
     }
-     */
+
 };
 
-#endif //OS_WET3_THREADSAFELIST_H
+#endif //THREAD_SAFE_LIST_H_
