@@ -40,7 +40,9 @@ private:
     }
 
 public:
-    // List functions
+    /**
+     * Constructor
+     */
     List() : size(0) {
         //initialize empty list with dummy nodes
         try {
@@ -49,9 +51,32 @@ public:
             std::cerr << "new:failed" << std::endl;
             exit(-1);
         }
-        // initialize the locks
+        // initialize the size lock
         pthread_mutex_init(&size_mutex, NULL);
     }
+
+    /**
+     * Destructor
+     */
+    ~List() {
+        // destroy all nodes (includes dummy)
+        Node* iter = head;
+        while (iter) {
+            Node* to_delete = iter;
+            iter=iter->next;
+            delete to_delete; // d'tor will destroy node's mutex
+        }
+
+        // destroy size_mutex
+        pthread_mutex_destroy(&size_mutex);
+    }
+
+    /**
+     * Insert new node to list while keeping the list ordered in an ascending order
+     * If there is already a node has the same data as @param data then return false (without adding it again)
+     * @param data the new data to be added to the list
+     * @return true if a new node was added and false otherwise
+     */
     bool insert(const T& data) {
         // hand over hand locking traversal
         pthread_mutex_lock(&(head->mutex)); // lock first node (dummy)
@@ -109,6 +134,11 @@ public:
         return true; // return success
     }
 
+    /**
+     * Remove the node that its data equals to @param value
+     * @param value the data to lookup a node that has the same data to be removed
+     * @return true if a matched node was found and removed and false otherwise
+     */
     bool remove(const T& value) {
         // hand over hand locking traversal
         pthread_mutex_lock(&(head->mutex)); // lock dummy
@@ -147,6 +177,10 @@ public:
         return false;
     }
 
+    /**
+     * Returns the current size of the list
+     * @return current size of the list
+     */
     unsigned int getSize() {
         int retVal = 0;
         pthread_mutex_lock(&size_mutex);
@@ -155,18 +189,7 @@ public:
         return retVal;
     }
 
-    ~List() {
-        // destroy all nodes (includes dummy)
-        Node* iter = head;
-        while (iter) {
-            Node* to_delete = iter;
-            iter=iter->next;
-            delete to_delete; // d'tor will destroy node's mutex
-        }
-
-        // destroy size_mutex
-        pthread_mutex_destroy(&size_mutex);
-    }
+    // Don't remove
     void print() {
           Node* temp = head->next;  // skip dummy
           if (temp == NULL)
@@ -195,7 +218,6 @@ public:
     virtual void __remove_test_hook() {}
 
     // for testing
-
     bool isSorted(){
         pthread_mutex_lock(&(head->mutex));
         if(!head->next) {
