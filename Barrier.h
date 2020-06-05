@@ -13,9 +13,6 @@ public:
     explicit Barrier(unsigned int num_of_thread);
     void wait();
     ~Barrier();
-
-    // function for testing
-    //int waitingThreads();
 };
 
 

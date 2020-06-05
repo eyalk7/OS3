@@ -33,13 +33,3 @@ Barrier::~Barrier() {
     sem_destroy(&fence);
     pthread_mutex_destroy(&mutex);
 }
-
-// function for testing
-/*
-int Barrier::waitingThreads() {
-    pthread_mutex_lock(&mutex); // lock mutex
-    int retVal = threads_in_barrier;
-    pthread_mutex_unlock(&mutex); // unlock mutex
-    return retVal;
-}
-*/
