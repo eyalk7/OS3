@@ -1,5 +1,5 @@
-#ifndef OS3_BARRIER_H
-#define OS3_BARRIER_H
+#ifndef BARRIER_H
+#define BARRIER_H
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -19,4 +19,4 @@ public:
 };
 
 
-#endif //OS_WET3_BARRIER_H
+#endif // BARRIER_H
