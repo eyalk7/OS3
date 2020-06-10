@@ -20,10 +20,14 @@ private:
         // Node functions
         explicit Node(const T& data) : data(data),
                               next(nullptr)  {
-            pthread_mutex_init(&mutex, NULL);
+            if (pthread_mutex_init(&mutex, NULL) != 0) {
+                std::cerr << "pthread_mutex_init:failed" << std::endl;
+            }
         }
         ~Node() {
-            pthread_mutex_destroy(&mutex);
+            if (pthread_mutex_destroy(&mutex) != 0) {
+                std::cerr << "pthread_mutex_destroy:failed" << std::endl;
+            }
         }
     };
 
@@ -34,9 +38,13 @@ private:
 
     void ReleaseLocks(Node* prev, Node* current) {
         if (current) {
-            pthread_mutex_unlock(&(current->mutex));
+            if (pthread_mutex_unlock(&(current->mutex)) != 0) {
+                std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+            }
         }
-        pthread_mutex_unlock(&(prev->mutex));
+        if (pthread_mutex_unlock(&(prev->mutex)) != 0) {
+            std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+        }
     }
 
 public:
@@ -52,7 +60,9 @@ public:
             exit(-1);
         }
         // initialize the size lock
-        pthread_mutex_init(&size_mutex, NULL);
+        if (pthread_mutex_init(&size_mutex, NULL) != 0) {
+            std::cerr << "pthread_mutex_init:failed" << std::endl;
+        }
     }
 
     /**
@@ -68,7 +78,9 @@ public:
         }
 
         // destroy size_mutex
-        pthread_mutex_destroy(&size_mutex);
+        if (pthread_mutex_destroy(&size_mutex) != 0) {
+            std::cerr << "pthread_mutex_destroy:failed" << std::endl;
+        }
     }
 
     /**
@@ -79,12 +91,19 @@ public:
      */
     bool insert(const T& data) {
         // hand over hand locking traversal
-        pthread_mutex_lock(&(head->mutex)); // lock first node (dummy)
+        if (pthread_mutex_lock(&(head->mutex)) != 0) { // lock first node (dummy)
+            std::cerr << "pthread_mutex_lock:failed" << std::endl;
+            return false;
+        }
 
         Node* prev = head;
         Node* current = head->next;
         while (current) {
-            pthread_mutex_lock(&(current->mutex)); // lock the next node to check
+            if (pthread_mutex_lock(&(current->mutex)) != 0) { // lock the next node to check
+                std::cerr << "pthread_mutex_lock:failed" << std::endl;
+                pthread_mutex_unlock(&(prev->mutex));
+                return false;
+            }
 
             // check if the node already exists
             if (current->data == data) {
@@ -98,7 +117,9 @@ public:
             }
             // else, keep traversing the list looking for appropriate insertion place
 
-            pthread_mutex_unlock(&(prev->mutex)); // unlock the previous node
+            if (pthread_mutex_unlock(&(prev->mutex)) != 0) { // unlock the previous node
+                std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+            }
 
             // update pointers for next iteration
             prev = current;
@@ -115,6 +136,7 @@ public:
             to_insert->next = current;
 
         } catch (std::bad_alloc&) {      // on allocation error
+            std::cerr << "new:failed" << std::endl;
             ReleaseLocks(prev, current); // release the locks
             // (if reached the end of the list current is null so no need to unlock)
 
@@ -122,9 +144,13 @@ public:
         }
 
         // update size
-        pthread_mutex_lock(&size_mutex);
+        if (pthread_mutex_lock(&size_mutex) != 0) {
+            std::cerr << "pthread_mutex_lock:failed" << std::endl;
+        }
         size++;
-        pthread_mutex_unlock(&size_mutex);
+        if (pthread_mutex_unlock(&size_mutex) != 0) {
+            std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+        }
 
         __insert_test_hook(); // test hook
 
@@ -141,39 +167,58 @@ public:
      */
     bool remove(const T& value) {
         // hand over hand locking traversal
-        pthread_mutex_lock(&(head->mutex)); // lock dummy
+        if (pthread_mutex_lock(&(head->mutex)) != 0){ // lock dummy
+            std::cerr << "pthread_mutex_lock:failed" << std::endl;
+            return false;
+        }
 
         Node* iter=head;
         while (iter->next) {
-            pthread_mutex_lock(&(iter->next->mutex)); // lock the next node to check
+            if (pthread_mutex_lock(&(iter->next->mutex)) != 0) {  // lock the next node to check
+                std::cerr << "pthread_mutex_lock:failed" << std::endl;
+                pthread_mutex_unlock(&(iter->mutex));
+                return false;
+            }
 
             if (iter->next->data == value) { // found it!
                 Node* to_delete = iter->next;
                 iter->next = iter->next->next; // remove from list
 
                 // update size
-                pthread_mutex_lock(&size_mutex);
+                if (pthread_mutex_lock(&size_mutex) != 0) {
+                    std::cerr << "pthread_mutex_lock:failed" << std::endl;
+                }
                 size--;
-                pthread_mutex_unlock(&size_mutex);
+                if (pthread_mutex_unlock(&size_mutex) != 0) {
+                    std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+                }
 
                 __remove_test_hook(); // test hook
 
-                pthread_mutex_unlock(&(iter->mutex));
-
                 // delete the node (it's ok to unlock the lock and destroy the lock safely after
                 // because we know for sure that no other thread would try to lock it in between)
-                pthread_mutex_unlock(&(to_delete->mutex));
+                if (pthread_mutex_unlock(&(to_delete->mutex)) != 0) {
+                    std::cerr << "pthread_unmutex_lock:failed" << std::endl;
+                }
                 delete to_delete; // mutex destroyed in Node's d'tor
+
+                if (pthread_mutex_unlock(&(iter->mutex)) != 0) {
+                    std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+                }
 
                 return true; // success
             }
 
             Node* prev = iter;
             iter=iter->next;
-            pthread_mutex_unlock(&(prev->mutex));
+            if (pthread_mutex_unlock(&(prev->mutex)) != 0) {
+                std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+            }
         }
 
-        pthread_mutex_unlock(&(iter->mutex)); // unlock
+        if (pthread_mutex_unlock(&(iter->mutex)) != 0) {
+            std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+        } // unlock
         return false;
     }
 
@@ -183,9 +228,13 @@ public:
      */
     unsigned int getSize() {
         int retVal = 0;
-        pthread_mutex_lock(&size_mutex);
+        if (pthread_mutex_lock(&size_mutex) != 0) {
+            std::cerr << "pthread_mutex_lock:failed" << std::endl;
+        }
         retVal = size;
-        pthread_mutex_unlock(&size_mutex);
+        if (pthread_mutex_unlock(&size_mutex) != 0) {
+            std::cerr << "pthread_mutex_unlock:failed" << std::endl;
+        }
         return retVal;
     }
 
